@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CGMS — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #0b0f1a;
+      --surface: #111827;
+      --card:    #1a2236;
+      --border:  #2a3a5c;
+      --accent:  #4f8ef7;
+      --accent2: #7c3aed;
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; animation: drift 10s ease-in-out infinite alternate; }
+    .orb1 { width:400px; height:400px; background:var(--accent); top:-100px; left:-100px; animation-delay:0s; }
+    .orb2 { width:300px; height:300px; background:var(--accent2); bottom:-80px; right:-80px; animation-delay:3s; }
+    .orb3 { width:200px; height:200px; background:var(--green); top:50%; left:60%; animation-delay:6s; }
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(30px,20px) scale(1.1); }
+    }
+    .page {
+      position: relative; z-index: 1; display: flex;
+      width: 900px; max-width: 95vw; min-height: 520px;
+      border-radius: 24px; overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    }
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(135deg, #1a2f6e 0%, #0b1a3e 60%, #1a1040 100%);
+      padding: 48px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content:''; position:absolute; inset:0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234f8ef7' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .brand { position: relative; }
+    .brand-icon {
+      width:60px; height:60px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius:16px; display:flex; align-items:center; justify-content:center;
+      font-size:28px; margin-bottom:24px;
+      box-shadow: 0 8px 24px rgba(79,142,247,0.4);
+    }
+    .brand h1 { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; line-height:1.2; margin-bottom:12px; }
+    .brand p  { color:#94a3b8; font-size:14px; line-height:1.6; margin-bottom:36px; }
+    .features { display:flex; flex-direction:column; gap:14px; }
+    .feature  { display:flex; align-items:center; gap:12px; font-size:13px; color:#94a3b8; }
+    .feature-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; box-shadow:0 0 8px var(--accent); }
+    .right-panel {
+      width:380px; flex-shrink:0;
+      background:var(--card); padding:48px 40px;
+      display:flex; flex-direction:column; justify-content:center;
+      border-left:1px solid var(--border);
+    }
+    .right-panel h2 { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; margin-bottom:6px; }
+    .right-panel .sub { color:var(--muted); font-size:14px; margin-bottom:32px; }
+    .tabs { display:flex; gap:4px; margin-bottom:28px; background:var(--surface); border-radius:10px; padding:4px; }
+    .tab { flex:1; padding:8px; border:none; background:none; border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .tab.active { background:var(--accent); color:#fff; }
+    .form-group { margin-bottom:18px; }
+    label { display:block; font-size:12px; font-weight:500; color:var(--muted); margin-bottom:7px; letter-spacing:.05em; text-transform:uppercase; }
+    input { width:100%; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; transition:border-color .2s; outline:none; }
+    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,142,247,0.15); }
+    .btn-primary { width:100%; padding:13px; background:linear-gradient(135deg,var(--accent),#3b6fd4); border:none; border-radius:10px; color:#fff; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:transform .15s,box-shadow .15s; margin-top:6px; }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(79,142,247,0.4); }
+    .alert { padding:11px 14px; border-radius:9px; font-size:13px; margin-bottom:18px; display:none; }
+    .alert.error   { background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+    .alert.success { background:rgba(34,197,94,.15); color:#86efac; border:1px solid rgba(34,197,94,.3); }
+    .alert.show { display:block; }
+    .hint { text-align:center; font-size:12px; color:var(--muted); margin-top:20px; }
+    @media(max-width:700px) {
+      .page { flex-direction:column; }
+      .left-panel { padding:32px 24px; }
+      .right-panel { width:100%; padding:32px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+<div class="page">
+  <div class="left-panel">
+    <div class="brand">
+      <div class="brand-icon">📋</div>
+      <h1>Complaint &amp; Grievance Management System</h1>
+      <p>A unified platform to submit, track, and resolve complaints efficiently.</p>
+      <div class="features">
+        <div class="feature"><div class="feature-dot"></div> Submit complaints easily</div>
+        <div class="feature"><div class="feature-dot"></div> Track real-time status</div>
+        <div class="feature"><div class="feature-dot"></div> Admin resolution panel</div>
+        <div class="feature"><div class="feature-dot"></div> Priority-based management</div>
+      </div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <h2>Welcome Back</h2>
+    <p class="sub">Sign in to your account to continue</p>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Login</button>
+      <button class="tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div id="loginForm">
+      <div class="alert" id="loginAlert"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••"/>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+      <p class="hint">Admin: admin@cgms.com / password</p>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="alert" id="regAlert"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Your full name"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>Phone (optional)</label>
+        <input type="text" id="regPhone" placeholder="9876543210"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPass" placeholder="Min 6 characters"/>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('loginForm').style.display    = tab==='login'    ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab==='register' ? 'block' : 'none';
+  }
+  function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `alert ${type} show`;
+  }
+  async function doLogin() {
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!email || !password) return showAlert('loginAlert','Please fill in all fields.','error');
+    const res  = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password}) });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('cgms_user', JSON.stringify(data.user));
+      window.location.href = data.user.role === 'admin' ? '/admin' : '/dashboard';
+    } else {
+      showAlert('loginAlert', data.message, 'error');
+    }
+  }
+  async function doRegister() {
+    const name     = document.getElementById('regName').value.trim();
+    const email    = document.getElementById('regEmail').value.trim();
+    const phone    = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPass').value;
+    if (!name||!email||!password) return showAlert('regAlert','Name, email & password are required.','error');
+    if (password.length < 6)      return showAlert('regAlert','Password must be at least 6 characters.','error');
+    const res  = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name,email,phone,password}) });
+    const data = await res.json();
+    if (data.success) {
+      showAlert('regAlert', data.message, 'success');
+      setTimeout(() => switchTab('login'), 1500);
+    } else {
+      showAlert('regAlert', data.message, 'error');
+    }
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const loginVisible = document.getElementById('loginForm').style.display !== 'none';
+      loginVisible ? doLogin() : doRegister();
+    }
+  });
+  const saved = localStorage.getItem('cgms_user');
+  if (saved) {
+    const u = JSON.parse(saved);
+    window.location.href = u.role === 'admin' ? '/admin' : '/dashboard';
+  }
+</script>
+</body>
+</html>

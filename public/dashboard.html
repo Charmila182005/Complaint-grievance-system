@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CGMS — My Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#0b0f1a; --surface:#111827; --card:#1a2236; --border:#2a3a5c; --accent:#4f8ef7; --accent2:#7c3aed; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --orange:#f97316; --text:#e2e8f0; --muted:#64748b; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+    .sidebar { position:fixed; left:0; top:0; bottom:0; width:240px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; }
+    .sidebar-logo { padding:24px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+    .logo-icon { width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .logo-text { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; line-height:1.2; }
+    .logo-text span { color:var(--muted); font-size:11px; font-weight:400; display:block; }
+    .nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:4px; }
+    .nav-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; color:var(--muted); font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(79,142,247,.15); color:var(--accent); }
+    .nav-icon { font-size:18px; width:20px; text-align:center; }
+    .sidebar-user { padding:16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+    .user-info .uname { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-info .urole { font-size:11px; color:var(--muted); }
+    .logout-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:4px; margin-left:auto; }
+    .logout-btn:hover { color:var(--red); }
+    .main { margin-left:240px; min-height:100vh; }
+    .topbar { padding:20px 32px; border-bottom:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:space-between; }
+    .topbar h1 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
+    .topbar p  { color:var(--muted); font-size:14px; margin-top:2px; }
+    .btn-new { display:flex; align-items:center; gap:8px; padding:10px 20px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .btn-new:hover { background:#3b6fd4; transform:translateY(-1px); }
+    .content { padding:28px 32px; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+    .stat-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; display:flex; align-items:center; gap:16px; }
+    .stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .stat-icon.blue   { background:rgba(79,142,247,.15); }
+    .stat-icon.yellow { background:rgba(245,158,11,.15); }
+    .stat-icon.orange { background:rgba(249,115,22,.15); }
+    .stat-icon.green  { background:rgba(34,197,94,.15); }
+    .stat-num { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; }
+    .stat-lbl { font-size:12px; color:var(--muted); margin-top:2px; }
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .section-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+    select { padding:8px 12px; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; outline:none; }
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:var(--surface); }
+    th { padding:13px 16px; text-align:left; font-size:12px; font-weight:600; color:var(--muted); letter-spacing:.05em; text-transform:uppercase; }
+    td { padding:14px 16px; font-size:14px; border-top:1px solid var(--border); }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    .badge { display:inline-flex; align-items:center; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .badge-pending    { background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-inprogress { background:rgba(79,142,247,.15); color:#93c5fd; }
+    .badge-resolved   { background:rgba(34,197,94,.15);  color:#86efac; }
+    .badge-rejected   { background:rgba(239,68,68,.15);  color:#fca5a5; }
+    .badge-low        { background:rgba(100,116,139,.15);color:#94a3b8; }
+    .badge-medium     { background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-high       { background:rgba(249,115,22,.15); color:#fb923c; }
+    .badge-urgent     { background:rgba(239,68,68,.15);  color:#fca5a5; }
+    .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+    .empty-state .icon { font-size:48px; margin-bottom:16px; }
+    .empty-state h3 { font-size:18px; color:var(--text); margin-bottom:8px; }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+    .modal h2 { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:6px; }
+    .modal .sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+    .form-group { margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    label { display:block; font-size:12px; font-weight:500; color:var(--muted); margin-bottom:7px; letter-spacing:.05em; text-transform:uppercase; }
+    input, textarea, select.full { width:100%; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color .2s; }
+    input:focus, textarea:focus { border-color:var(--accent); }
+    textarea { resize:vertical; min-height:100px; }
+    .modal-actions { display:flex; gap:12px; margin-top:6px; }
+    .btn-submit { flex:1; padding:13px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; }
+    .btn-submit:hover { background:#3b6fd4; }
+    .btn-cancel { padding:13px 20px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; }
+    .alert { padding:11px 14px; border-radius:9px; font-size:13px; margin-bottom:18px; display:none; }
+    .alert.error   { background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+    .alert.success { background:rgba(34,197,94,.15); color:#86efac; border:1px solid rgba(34,197,94,.3); }
+    .alert.show { display:block; }
+    .detail-row { display:flex; gap:8px; margin-bottom:12px; font-size:14px; }
+    .detail-label { color:var(--muted); min-width:100px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+    .admin-note-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:14px; color:#93c5fd; }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">CGMS <span>Grievance Portal</span></div>
+  </div>
+  <nav class="nav">
+    <a class="nav-item active"><span class="nav-icon">📂</span> My Complaints</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar" id="avatarInit">U</div>
+    <div class="user-info">
+      <div class="uname" id="sidebarName">User</div>
+      <div class="urole">Citizen</div>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Logout">⏻</button>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>My Dashboard</h1>
+      <p id="welcomeMsg">Welcome back!</p>
+    </div>
+    <button class="btn-new" onclick="openModal()">+ New Complaint</button>
+  </div>
+  <div class="content">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total Submitted</div></div></div>
+      <div class="stat-card"><div class="stat-icon yellow">⏳</div><div><div class="stat-num" id="statPending">0</div><div class="stat-lbl">Pending</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange">🔄</div><div><div class="stat-num" id="statProgress">0</div><div class="stat-lbl">In Progress</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-num" id="statResolved">0</div><div class="stat-lbl">Resolved</div></div></div>
+    </div>
+    <div class="section-header">
+      <div class="section-title">My Complaints</div>
+      <select id="filterStatus" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option>Pending</option>
+        <option>In Progress</option>
+        <option>Resolved</option>
+        <option>Rejected</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr>
+        </thead>
+        <tbody id="complaintsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Modal -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal">
+    <h2>Submit a Complaint</h2>
+    <p class="sub">Fill in the details below. We'll look into it promptly.</p>
+    <div class="alert" id="submitAlert"></div>
+    <div class="form-group">
+      <label>Complaint Title</label>
+      <input type="text" id="cTitle" placeholder="Brief title of your complaint"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select class="full" id="cCategory">
+          <option>Infrastructure</option><option>Utilities</option><option>Electricity</option>
+          <option>Sanitation</option><option>Public Safety</option><option>Environment</option>
+          <option>Transportation</option><option>Healthcare</option><option>Education</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select class="full" id="cPriority">
+          <option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="cDesc" placeholder="Describe your complaint in detail..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitComplaint()">Submit Complaint →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <h2>Complaint Details</h2>
+    <p class="sub" id="detailId"></p>
+    <div id="detailContent"></div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-cancel" style="flex:1" onclick="closeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let user = null;
+  let allComplaints = [];
+
+  window.onload = async () => {
+    const saved = localStorage.getItem('cgms_user');
+    if (!saved) return window.location.href = '/';
+    user = JSON.parse(saved);
+    if (user.role === 'admin') return window.location.href = '/admin';
+    document.getElementById('sidebarName').textContent = user.name;
+    document.getElementById('avatarInit').textContent  = user.name.charAt(0).toUpperCase();
+    document.getElementById('welcomeMsg').textContent  = `Welcome, ${user.name}!`;
+    await loadComplaints();
+  };
+
+  async function loadComplaints() {
+    const res  = await fetch(`/api/complaints/mine/${user.id}`);
+    const data = await res.json();
+    if (!data.success) return;
+    allComplaints = data.data;
+    document.getElementById('statTotal').textContent    = allComplaints.length;
+    document.getElementById('statPending').textContent  = allComplaints.filter(c=>c.status==='Pending').length;
+    document.getElementById('statProgress').textContent = allComplaints.filter(c=>c.status==='In Progress').length;
+    document.getElementById('statResolved').textContent = allComplaints.filter(c=>c.status==='Resolved').length;
+    renderTable();
+  }
+
+  function renderTable() {
+    const filter = document.getElementById('filterStatus').value;
+    const list   = filter ? allComplaints.filter(c=>c.status===filter) : allComplaints;
+    const tbody  = document.getElementById('complaintsTbody');
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><h3>No complaints yet</h3><p>Click "+ New Complaint" to submit.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map((c,i) => `
+      <tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td style="font-weight:500">${c.title}</td>
+        <td>${c.category}</td>
+        <td><span class="badge badge-${c.priority.toLowerCase()}">${c.priority}</span></td>
+        <td><span class="badge badge-${statusClass(c.status)}">${c.status}</span></td>
+        <td style="color:var(--muted)">${formatDate(c.created_at)}</td>
+        <td><button onclick='showDetail(${JSON.stringify(c)})' style="background:none;border:1px solid var(--border);color:var(--accent);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:12px;">View</button></td>
+      </tr>`).join('');
+  }
+
+  function statusClass(s) { return s==='In Progress'?'inprogress':s.toLowerCase(); }
+  function formatDate(d)   { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+  function openModal()  { document.getElementById('submitModal').classList.add('open'); }
+  function closeModal() { document.getElementById('submitModal').classList.remove('open'); document.getElementById('submitAlert').className='alert'; }
+  function closeDetail(){ document.getElementById('detailModal').classList.remove('open'); }
+
+  async function submitComplaint() {
+    const title       = document.getElementById('cTitle').value.trim();
+    const category    = document.getElementById('cCategory').value;
+    const priority    = document.getElementById('cPriority').value;
+    const description = document.getElementById('cDesc').value.trim();
+    if (!title||!description) {
+      const el = document.getElementById('submitAlert');
+      el.textContent='Title and description are required.'; el.className='alert error show'; return;
+    }
+    const res  = await fetch('/api/complaints/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,title,category,priority,description})});
+    const data = await res.json();
+    const el   = document.getElementById('submitAlert');
+    if (data.success) {
+      el.textContent='✅ Complaint submitted!'; el.className='alert success show';
+      document.getElementById('cTitle').value=''; document.getElementById('cDesc').value='';
+      setTimeout(()=>{closeModal();loadComplaints();},1500);
+    } else { el.textContent=data.message; el.className='alert error show'; }
+  }
+
+  function showDetail(c) {
+    document.getElementById('detailId').textContent = `Complaint #${c.id} — ${formatDate(c.created_at)}`;
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Title</span><span style="font-weight:600">${c.title}</span></div>
+      <div class="detail-row"><span class="detail-label">Category</span><span>${c.category}</span></div>
+      <div class="detail-row"><span class="detail-label">Priority</span><span class="badge badge-${c.priority.toLowerCase()}">${c.priority}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="badge badge-${statusClass(c.status)}">${c.status}</span></div>
+      <div class="detail-row" style="flex-direction:column;gap:6px;"><span class="detail-label">Description</span><span>${c.description}</span></div>
+      ${c.admin_note?`<div class="detail-row" style="flex-direction:column;gap:6px;margin-top:8px;"><span class="detail-label">Admin Response</span><div class="admin-note-box">${c.admin_note}</div></div>`:''}`;
+    document.getElementById('detailModal').classList.add('open');
+  }
+
+  async function logout() {
+    await fetch('/api/auth/logout',{method:'POST'});
+    localStorage.removeItem('cgms_user');
+    window.location.href='/';
+  }
+</script>
+</body>
+</html>

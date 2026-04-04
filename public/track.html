@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Track Complaint — CGMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --bg:#0b0f1a; --card:#1a2236; --border:#2a3a5c; --accent:#4f8ef7; --text:#e2e8f0; --muted:#64748b; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px; width:520px; max-width:95vw; }
+    h2 { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:8px; }
+    .sub { color:var(--muted); font-size:14px; margin-bottom:28px; line-height:1.6; }
+    .row { display:flex; gap:10px; }
+    input { flex:1; padding:12px 14px; background:#111827; border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; }
+    input:focus { border-color:var(--accent); }
+    button { padding:12px 20px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px; }
+    button:hover { background:#3b6fd4; }
+    .errmsg { color:#fca5a5; margin-top:14px; font-size:13px; display:none; }
+    .errmsg.show { display:block; }
+    .result { margin-top:24px; background:#111827; border:1px solid var(--border); border-radius:14px; padding:20px; display:none; }
+    .result.show { display:block; }
+    .item { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .item:last-child { border:none; }
+    .item .lbl { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+    .badge { padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+    .Pending     { background:rgba(245,158,11,.15); color:#fbbf24; }
+    .In-Progress { background:rgba(79,142,247,.15);  color:#93c5fd; }
+    .Resolved    { background:rgba(34,197,94,.15);   color:#86efac; }
+    .Rejected    { background:rgba(239,68,68,.15);   color:#fca5a5; }
+    .note-box { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; font-size:13px; color:#93c5fd; margin-top:8px; line-height:1.5; }
+    .links { display:flex; justify-content:space-between; margin-top:24px; }
+    .links a { color:var(--muted); font-size:13px; text-decoration:none; }
+    .links a:hover { color:var(--accent); }
+  </style>
+</head>
+<body>
+<div class="box">
+  <h2>🔍 Track Your Complaint</h2>
+  <p class="sub">Enter your Complaint ID to instantly check status — no login required!</p>
+
+  <div class="row">
+    <input type="number" id="cid" placeholder="Enter Complaint ID  e.g. 1"/>
+    <button onclick="track()">Track →</button>
+  </div>
+
+  <div class="errmsg" id="errMsg"></div>
+
+  <div class="result" id="result">
+    <div class="item">
+      <span class="lbl">Complaint ID</span>
+      <span id="rId" style="font-weight:700"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Title</span>
+      <span id="rTitle" style="font-weight:500;max-width:280px;text-align:right"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Category</span>
+      <span id="rCat"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Priority</span>
+      <span id="rPri"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Submitted By</span>
+      <span id="rUser"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Date Filed</span>
+      <span id="rDate"></span>
+    </div>
+    <div class="item">
+      <span class="lbl">Current Status</span>
+      <span id="rStatus"></span>
+    </div>
+    <div id="noteRow" style="display:none;flex-direction:column;padding:12px 0;">
+      <span class="lbl" style="margin-bottom:8px;">Admin Response</span>
+      <div class="note-box" id="rNote"></div>
+    </div>
+  </div>
+
+  <div class="links">
+    <a href="/">← Back to Login</a>
+    <a href="/track">Track Another</a>
+  </div>
+</div>
+
+<script>
+  async function track() {
+    const id     = document.getElementById('cid').value.trim();
+    const err    = document.getElementById('errMsg');
+    const result = document.getElementById('result');
+
+    if (!id) {
+      err.textContent = '⚠️ Please enter a complaint ID.';
+      err.className = 'errmsg show';
+      return;
+    }
+
+    const r    = await fetch(`/api/complaints/track/${id}`);
+    const data = await r.json();
+
+    if (!data.success) {
+      err.textContent  = '❌ Complaint not found. Please check the ID and try again.';
+      err.className    = 'errmsg show';
+      result.className = 'result';
+      return;
+    }
+
+    err.className = 'errmsg';
+    const c = data.data;
+
+    document.getElementById('rId').textContent    = `#${c.id}`;
+    document.getElementById('rTitle').textContent = c.title;
+    document.getElementById('rCat').textContent   = c.category;
+    document.getElementById('rPri').textContent   = c.priority;
+    document.getElementById('rUser').textContent  = c.user_name;
+    document.getElementById('rDate').textContent  = new Date(c.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+    const sc = c.status.replace(' ','-');
+    document.getElementById('rStatus').innerHTML = `<span class="badge ${sc}">${c.status}</span>`;
+
+    const noteRow = document.getElementById('noteRow');
+    if (c.admin_note) {
+      document.getElementById('rNote').textContent = c.admin_note;
+      noteRow.style.display = 'flex';
+    } else {
+      noteRow.style.display = 'none';
+    }
+
+    result.className = 'result show';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') track();
+  });
+</script>
+</body>
+</html>
